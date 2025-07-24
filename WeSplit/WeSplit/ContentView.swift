@@ -9,63 +9,75 @@ import SwiftUI
 
 struct ContentView: View {
 
-    @State private var checkAmount = 0.0
+    @State private var billAmount = 0.0
     @State private var numPeople = 2
-    @State private var tipPercentage = 20
+    @State private var selectedTipPercentage = 20
     @FocusState private var amountIsFocused: Bool
     
-    let tipPercentages = [10, 15, 20, 25, 0]
+    @State var tipPercentages = 20
     
-    var totalPerPerson: Double {
-        let peopleCount = Double(numPeople + 2)
-        let tipSelection = Double(tipPercentage)
-        
-        let tipValue = (checkAmount / 100) * tipSelection
-        let totalValue = checkAmount + tipValue
-        let totalPerPersonValue = totalValue / peopleCount
-        
-        return totalPerPersonValue
-        
+    var tipValue: Double {
+        billAmount * Double(selectedTipPercentage) / 100
+    }
+
+    var totalAmount: Double {
+        billAmount + tipValue
+    }
+
+    var amountPerPerson: Double {
+        totalAmount / Double(numPeople)
     }
     
     var body: some View {
-        VStack{
-            NavigationStack{
-                Form{
-                    Section{
-                        TextField("Amount", value: $checkAmount, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
-                            .keyboardType(.decimalPad)
-                            .focused($amountIsFocused)
-                        
-                        Picker("Number of people", selection: $numPeople){
-                            ForEach(2..<100){
-                                Text("\($0) people")
-                            }
-                        }
-                        .pickerStyle(.navigationLink)
-                        
-                    }
+        NavigationStack{
+            Form{
+                Section{
+                    TextField("Amount", value: $billAmount, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
+                        .keyboardType(.decimalPad)
+                        .focused($amountIsFocused)
                     
-                    Section ("how much do you want to tip?"){
-                        Picker("Tip percentage", selection: $tipPercentage) {
-                            ForEach(tipPercentages, id: \.self) {
-                                Text($0, format: .percent)
-                            }
+                    Picker("Number of people", selection: $numPeople){
+                        ForEach(2..<100){
+                            Text("\($0) people")
                         }
-                        .pickerStyle(.segmented)
                     }
-                    
-                    Section{
-                        Text(totalPerPerson, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
-                    }
+                    .pickerStyle(.navigationLink)
                     
                 }
-                .navigationTitle("WeSplit")
-                .toolbar {
-                    if amountIsFocused {
-                        Button("Done") {
-                            amountIsFocused = false
+                
+                Section ("how much do you want to tip?"){
+                    Picker("Tip percentage", selection: $selectedTipPercentage) {
+                        ForEach(0..<101) {
+                            Text("\($0) %")
                         }
+                    }
+                    .pickerStyle(.navigationLink)
+                }
+                
+                Section ("Value of the tip"){
+                    Text(tipValue, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
+                }
+
+                Section ("Total without tip"){
+                    Text(billAmount, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
+                }
+
+                
+                Section ("Total Amount"){
+                    Text(totalAmount, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
+                }
+                
+                Section ("Amount per person"){
+                    Text(amountPerPerson, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
+                }
+                
+            }
+            .navigationTitle("WeSplit")
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") {
+                        amountIsFocused = false
                     }
                 }
             }
